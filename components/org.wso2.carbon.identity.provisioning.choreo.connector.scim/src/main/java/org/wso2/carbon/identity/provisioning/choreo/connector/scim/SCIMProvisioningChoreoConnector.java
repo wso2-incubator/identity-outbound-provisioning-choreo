@@ -86,6 +86,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
     @Override
     public ProvisionedIdentifier provision(ProvisioningEntity provisioningEntity)
             throws IdentityProvisioningException {
+
         if (provisioningEntity != null) {
 
             if (provisioningEntity.isJitProvisioning() && !isJitProvisioningEnabled()) {
@@ -111,6 +112,11 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
         return null;
     }
 
+    /**
+     * Get deleted user details and send HTTP DELETE request.
+     * @param userEntity - user details
+     * @throws IdentityProvisioningException - throws exception if there
+     */
     private void deleteUser(ProvisioningEntity userEntity) throws IdentityProvisioningException {
 
         try {
@@ -127,21 +133,21 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
 
             try {
 
-                String contentType = this.scimProvider.getProperty("Content-Type");
+                String contentType = this.scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE);
                 if (contentType == null) {
                     contentType = SCIMChoreoConfigConstants.ELEMENT_NAME_JSON_TYPE;
                 }
                 assert userName != null;
                 String slashRemovedUserName = userName.replace('/', ',');
 
-                String endPointUrl = scimProvider.getProperty("apiEndpoint") + "/" + slashRemovedUserName;
-                String tokenValue = scimProvider.getProperty("apiToken");
+                String endPointUrl = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_ENDPOINT) + "/" + slashRemovedUserName;
+                String tokenValue = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_TOKEN);
                 String authorizationHeaderValue = SCIMChoreoConfigConstants.ELEMENT_NAME_TOKEN_TYPE + tokenValue;
 
                 HttpDelete delete = new HttpDelete(endPointUrl);
-                delete.setHeader("Accept", SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT_TYPE);
-                delete.setHeader("Content-type", contentType);
-                delete.setHeader("Authorization", authorizationHeaderValue);
+                delete.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT, SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT_TYPE);
+                delete.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE, contentType);
+                delete.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_AUTHORIZATION, authorizationHeaderValue);
 
                 try (CloseableHttpClient httpClient = HttpClients.createDefault();
                      CloseableHttpResponse response = httpClient.execute(delete)) { }
@@ -155,8 +161,15 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
         }
     }
 
+    /**
+     * Get upadated user details and send HTTP request.
+     * @param userEntity - user details
+     * @param provisioningOperation - Operation type
+     * @throws IdentityProvisioningException - throws exception if there
+     */
     private void updateUser(ProvisioningEntity userEntity, ProvisioningOperation provisioningOperation) throws
             IdentityProvisioningException {
+
         try {
 
             List<String> userNames = getUserNames(userEntity.getAttributes());
@@ -178,18 +191,18 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             // Adding third party client.
             try {
 
-                String contentType = this.scimProvider.getProperty("Content-Type");
+                String contentType = this.scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE);
                 if (contentType == null) {
                     contentType = SCIMChoreoConfigConstants.ELEMENT_NAME_JSON_TYPE;
                 }
-                String endPointUrl = scimProvider.getProperty("apiEndpoint") + "/";
-                String tokenValue = scimProvider.getProperty("apiToken");
+                String endPointUrl = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_ENDPOINT) + "/";
+                String tokenValue = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_TOKEN);
                 String authorizationHeader = SCIMChoreoConfigConstants.ELEMENT_NAME_TOKEN_TYPE + tokenValue;
 
                 HttpPut put = new HttpPut(endPointUrl);
-                put.setHeader("Accept", SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT_TYPE);
-                put.setHeader("Content-type", contentType);
-                put.setHeader("Authorization", authorizationHeader);
+                put.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT, SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT_TYPE);
+                put.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE, contentType);
+                put.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_AUTHORIZATION, authorizationHeader);
 
                 // Fetching the SCIM object.
                 SCIMClient newScimClient = new SCIMClient();
@@ -213,7 +226,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
     }
 
     /**
-     *
+     * Get created user details and send HTTP POST request.
      * @param userEntity - user details
      * @throws IdentityProvisioningException - throws exception if there
      */
@@ -241,19 +254,19 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             // Adding third party client.
             try {
 
-                String contentType = this.scimProvider.getProperty("Content-Type");
+                String contentType = this.scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE);
                 if (contentType == null) {
                     contentType = SCIMChoreoConfigConstants.ELEMENT_NAME_JSON_TYPE;
                 }
 
-                String endPointUrl = scimProvider.getProperty("apiEndpoint") + "/";
-                String tokenValue = scimProvider.getProperty("apiToken");
+                String endPointUrl = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_ENDPOINT) + "/";
+                String tokenValue = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_TOKEN);
                 String authorizationHeader = SCIMChoreoConfigConstants.ELEMENT_NAME_TOKEN_TYPE + tokenValue;
 
                 HttpPost post = new HttpPost(endPointUrl);
-                post.setHeader("Accept", SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT_TYPE);
-                post.setHeader("Content-type", contentType);
-                post.setHeader("Authorization", authorizationHeader);
+                post.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT, SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT_TYPE);
+                post.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE, contentType);
+                post.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_AUTHORIZATION, authorizationHeader);
 
                 // Fetching the SCIM object.
                 SCIMClient newScimClient = new SCIMClient();
@@ -284,7 +297,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
     @Override
     protected String getPassword(Map<ClaimMapping, List<String>> attributeMap) {
 
-        String password = "";
+        String password = StringUtils.EMPTY;
         List<String> claimValues = ProvisioningUtil.getClaimValues(attributeMap,
                 IdentityProvisioningConstants.PASSWORD_CLAIM_URI, null);
 
@@ -317,6 +330,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
 
     @Override
     protected String getUserStoreDomainName() {
+        
         return userStoreDomainName;
     }
     

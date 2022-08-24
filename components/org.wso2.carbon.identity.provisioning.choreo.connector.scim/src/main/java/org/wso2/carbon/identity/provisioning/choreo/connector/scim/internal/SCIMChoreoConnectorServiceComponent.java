@@ -31,8 +31,10 @@ import org.wso2.carbon.identity.provisioning.choreo.connector.scim.SCIMProvision
  */
 
 public class SCIMChoreoConnectorServiceComponent {
+
     private static final Log log = LogFactory.getLog(SCIMChoreoConnectorServiceComponent.class);
     protected void activate(ComponentContext context) {
+        
         if (log.isDebugEnabled()) {
             log.debug("Activating SCIMChoreoConnectorServiceComponent");
         }

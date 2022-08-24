@@ -28,6 +28,9 @@ public class SCIMChoreoConfigConstants {
     public static final String ELEMENT_NAME_JSON_TYPE = "application/json";
     public static final String ELEMENT_NAME_TOKEN_TYPE = "Bearer ";
     public static final String ELEMENT_NAME_ACCEPT_TYPE = "text/plain";
+    public static final String ELEMENT_NAME_CONTENT_TYPE = "Content-Type";
+    public static final String ELEMENT_NAME_ACCEPT = "Accept";
+    public static final String ELEMENT_NAME_AUTHORIZATION = "Authorization";
     
     public SCIMChoreoConfigConstants() {
     }

@@ -41,6 +41,7 @@ public class SCIMProvisioningChoreoConnectorFactory extends AbstractProvisioning
     @Override
     protected AbstractOutboundProvisioningConnector buildConnector(Property[] provisioningProperties)
             throws IdentityProvisioningException {
+                
         SCIMProvisioningChoreoConnector scimProvisioningChoreoConnector = new SCIMProvisioningChoreoConnector();
         scimProvisioningChoreoConnector.init(provisioningProperties);
 
@@ -52,7 +53,8 @@ public class SCIMProvisioningChoreoConnectorFactory extends AbstractProvisioning
 
     @Override
     public String getConnectorType() {
-        return CHOREO_SCIM; }
+        return CHOREO_SCIM; 
+    }
 
     @Override
     public List<Property> getConfigurationProperties() {
@@ -91,14 +93,6 @@ public class SCIMProvisioningChoreoConnectorFactory extends AbstractProvisioning
         enablePwdProvisioning.setType("boolean");
         enablePwdProvisioning.setDefaultValue("true");
         enablePwdProvisioning.setDisplayOrder(4);
-
-        SubProperty defaultPwd = new SubProperty();
-        defaultPwd.setName(SCIMProvisioningChoreoConnectorConstants.SCIM_DEFAULT_PASSWORD);
-        defaultPwd.setDisplayName("Default Password");
-        defaultPwd.setRequired(false);
-        defaultPwd.setType("string");
-        defaultPwd.setConfidential(true);
-        enablePwdProvisioning.setSubProperties(new SubProperty[] {defaultPwd});
         configProperties.add(enablePwdProvisioning);
 
         return configProperties;
