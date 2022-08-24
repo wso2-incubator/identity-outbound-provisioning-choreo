@@ -29,7 +29,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.provisioning.choreo.connector.scim</artifactId>
-    <name>WSO2 Carbon - SCIM - Provisioning Component</name>
+    <name>WSO2 Carbon - SCIM - Provisioning Choreo Module</name>
 
     <packaging>bundle</packaging>
 
@@ -152,7 +152,6 @@
                             org.wso2.carbon.identity.provisioning.connector.scim; version="${carbon.identity.provisioning.connector.version.range}",
                             org.wso2.charon.core.client;,
                             org.apache.http.*
-
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.provisioning.choreo.connector.scim.internal,

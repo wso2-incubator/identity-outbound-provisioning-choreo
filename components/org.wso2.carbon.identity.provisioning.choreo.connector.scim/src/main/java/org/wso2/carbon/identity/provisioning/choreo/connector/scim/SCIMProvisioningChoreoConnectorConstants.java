@@ -26,6 +26,7 @@ public class SCIMProvisioningChoreoConnectorConstants {
     private SCIMProvisioningChoreoConnectorConstants(){
 
     }
+    
     public static final String SCIM_USER_EP = "scim-user-ep";
     public static final String SCIM_API_EP = "scim-api-ep";
     public static final String SCIM_API_TOKEN = "scim-api-token";

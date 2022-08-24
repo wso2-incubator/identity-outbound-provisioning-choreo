@@ -194,13 +194,6 @@
     <build>
         <pluginManagement>
             <plugins>
-<!--                <plugin>-->
-<!--                    <groupId>org.apache.maven.plugins</groupId>-->
-<!--                    <artifactId>maven-checkstyle-plugin</artifactId>-->
-<!--                    <configuration>-->
-<!--                        <skip>true</skip>-->
-<!--                    </configuration>-->
-<!--                </plugin>-->
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-scr-plugin</artifactId>
@@ -314,8 +307,6 @@
         <maven.compiler.plugin.version>2.3.1</maven.compiler.plugin.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
         <carbon.identity.provisioning.connector.version.range>[5.2.0,5.3.0)</carbon.identity.provisioning.connector.version.range>
-
-
 
     </properties>
 

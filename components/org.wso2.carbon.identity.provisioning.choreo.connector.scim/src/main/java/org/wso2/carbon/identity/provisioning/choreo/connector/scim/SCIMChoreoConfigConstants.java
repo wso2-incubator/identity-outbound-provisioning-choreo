@@ -22,11 +22,13 @@ package org.wso2.carbon.identity.provisioning.choreo.connector.scim;
  *The constants needed for configuration.
  */
 public class SCIMChoreoConfigConstants {
+
     public static final String ELEMENT_NAME_API_ENDPOINT = "apiEndpoint";
     public static final String ELEMENT_NAME_API_TOKEN = "apiToken";
     public static final String ELEMENT_NAME_JSON_TYPE = "application/json";
     public static final String ELEMENT_NAME_TOKEN_TYPE = "Bearer ";
     public static final String ELEMENT_NAME_ACCEPT_TYPE = "text/plain";
+    
     public SCIMChoreoConfigConstants() {
     }
 }

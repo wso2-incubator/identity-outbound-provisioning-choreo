@@ -44,7 +44,6 @@ import org.wso2.charon.core.objects.User;
 import org.wso2.charon.core.schema.SCIMConstants;
 
 import java.io.IOException;
-import java.util.*;
 
 /**
  * The connector for SCIM outbound provisioning with choreo connector.
@@ -56,6 +55,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
     private SCIMProvider scimProvider;
     private String userStoreDomainName;
     SCIMObject newScimObject;
+
     @Override
     public void init(Property[] provisioningProperties) throws IdentityProvisioningException {
 
@@ -82,6 +82,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             }
         }
     }
+
     @Override
     public ProvisionedIdentifier provision(ProvisioningEntity provisioningEntity)
             throws IdentityProvisioningException {
@@ -165,16 +166,16 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
                 userName = userNames.get(0);
             }
             User user;
-            // get single-valued claims
+            // Get single-valued claims.
             Map<String, String> singleValued = getSingleValuedClaims(userEntity.getAttributes());
-            // if user created through management console, claim values are not present.
+            // If user created through management console, claim values are not present.
             user = (User) AttributeMapper.constructSCIMObjectFromAttributes(singleValued,
                     SCIMConstants.USER_INT);
             user.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             user.setUserName(userName);
             setUserPassword(user, userEntity);
 
-            // adding third party client
+            // Adding third party client.
             try {
 
                 String contentType = this.scimProvider.getProperty("Content-Type");
@@ -190,13 +191,13 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
                 put.setHeader("Content-type", contentType);
                 put.setHeader("Authorization", authorizationHeader);
 
-                // fetching the SCIM object
+                // Fetching the SCIM object.
                 SCIMClient newScimClient = new SCIMClient();
                 this.newScimObject = user;
                 String newEncodedUser = newScimClient.encodeSCIMObject((AbstractSCIMObject) newScimObject,
                         SCIMConstants.identifyFormat(contentType));
 
-                // send a JSON data
+                // Send a JSON data.
                 put.setEntity(new StringEntity(newEncodedUser));
 
                 try (CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -210,6 +211,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             throw new IdentityProvisioningException("Error while updating the user", e);
         }
     }
+
     /**
      *
      * @param userEntity - user details
@@ -225,10 +227,10 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
                 userName = userNames.get(0);
             }
             User user;
-            // get single-valued claims
+            // Get single-valued claims.
             Map<String, String> singleValued = getSingleValuedClaims(userEntity.getAttributes());
 
-            // if user created through management console, claim values are not present.
+            // If user created through management console, claim values are not present.
             user = (User) AttributeMapper.constructSCIMObjectFromAttributes(singleValued,
                     SCIMConstants.USER_INT);
 
@@ -236,7 +238,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             user.setUserName(userName);
             setUserPassword(user, userEntity);
 
-            // adding third party client
+            // Adding third party client.
             try {
 
                 String contentType = this.scimProvider.getProperty("Content-Type");
@@ -253,13 +255,13 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
                 post.setHeader("Content-type", contentType);
                 post.setHeader("Authorization", authorizationHeader);
 
-                // fetching the SCIM object
+                // Fetching the SCIM object.
                 SCIMClient newScimClient = new SCIMClient();
                 this.newScimObject = user;
                 String newEncodedUser = newScimClient.encodeSCIMObject((AbstractSCIMObject) newScimObject,
                         SCIMConstants.identifyFormat(contentType));
 
-                // send a JSON data
+                // Send a JSON data.
                 post.setEntity(new StringEntity(newEncodedUser));
 
                 try (CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -301,6 +303,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
 
         return password;
     }
+
     private void setUserPassword(User user, ProvisioningEntity userEntity) throws CharonException {
 
         if (Boolean.parseBoolean(scimProvider.getProperty(SCIMProvisioningChoreoConnectorConstants
@@ -311,10 +314,12 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             user.setPassword(scimProvider.getProperty(SCIMProvisioningChoreoConnectorConstants.SCIM_DEFAULT_PASSWORD));
         }
     }
+
     @Override
     protected String getUserStoreDomainName() {
         return userStoreDomainName;
     }
+    
     private void populateSCIMProvider(Property property, String scimPropertyName)
             throws IdentityProvisioningException {
 
