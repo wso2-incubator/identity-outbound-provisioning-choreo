@@ -114,6 +114,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
 
     /**
      * Get deleted user details and send HTTP DELETE request.
+     *
      * @param userEntity - user details
      * @throws IdentityProvisioningException - throws exception if there
      */
@@ -163,6 +164,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
 
     /**
      * Get upadated user details and send HTTP request.
+     *
      * @param userEntity - user details
      * @param provisioningOperation - Operation type
      * @throws IdentityProvisioningException - throws exception if there
@@ -227,6 +229,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
 
     /**
      * Get created user details and send HTTP POST request.
+     *
      * @param userEntity - user details
      * @throws IdentityProvisioningException - throws exception if there
      */
