@@ -1,20 +1,20 @@
 /*
- * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
+        Copyright (c) 2022, WSO2 LLC. (http://www.wso2.com).
+
+        WSO2 LLC. licenses this file to you under the Apache License,
+        Version 2.0 (the "License"); you may not use this file except
+        in compliance with the License.
+        You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing,
+        software distributed under the License is distributed on an
+        "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+        KIND, either express or implied.  See the License for the
+        specific language governing permissions and limitations
+        under the License.
+*/
 
 package org.wso2.carbon.identity.provisioning.choreo.connector.scim;
 
@@ -31,19 +31,29 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.provisioning.*;
 import org.wso2.carbon.identity.provisioning.connector.scim.SCIMProvisioningConnector;
 import org.wso2.carbon.identity.scim.common.utils.AttributeMapper;
 import org.wso2.charon.core.client.SCIMClient;
-import org.wso2.charon.core.config.SCIMConfigConstants;
 import org.wso2.charon.core.config.SCIMProvider;
 import org.wso2.charon.core.exceptions.CharonException;
 import org.wso2.charon.core.objects.AbstractSCIMObject;
 import org.wso2.charon.core.objects.SCIMObject;
 import org.wso2.charon.core.objects.User;
 import org.wso2.charon.core.schema.SCIMConstants;
+import org.wso2.carbon.identity.provisioning.IdentityProvisioningException;
+import org.wso2.carbon.identity.provisioning.IdentityProvisioningConstants;
+import org.wso2.carbon.identity.provisioning.ProvisionedIdentifier;
+import org.wso2.carbon.identity.provisioning.ProvisioningEntity;
+import org.wso2.carbon.identity.provisioning.ProvisioningEntityType;
+import org.wso2.carbon.identity.provisioning.ProvisioningOperation;
+import org.wso2.carbon.identity.provisioning.ProvisioningUtil;
 
 import java.io.IOException;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The connector for SCIM outbound provisioning with choreo connector.
@@ -54,7 +64,7 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
     private static final Log log = LogFactory.getLog(SCIMProvisioningChoreoConnector.class);
     private SCIMProvider scimProvider;
     private String userStoreDomainName;
-    SCIMObject newScimObject;
+    private SCIMObject newScimObject;
 
     @Override
     public void init(Property[] provisioningProperties) throws IdentityProvisioningException {
@@ -65,15 +75,13 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             for (Property property : provisioningProperties) {
 
                 if (SCIMProvisioningChoreoConnectorConstants.SCIM_API_EP.equals(property.getName())) {
-                    populateSCIMProvider(property, SCIMChoreoConfigConstants.ELEMENT_NAME_API_ENDPOINT);
+                    populateSCIMProvider(property, SCIMChoreoConfigConstants.API_ENDPOINT);
                 } else if (SCIMProvisioningChoreoConnectorConstants.SCIM_API_TOKEN.equals(property.getName())) {
-                    populateSCIMProvider(property, SCIMChoreoConfigConstants.ELEMENT_NAME_API_TOKEN);
+                    populateSCIMProvider(property, SCIMChoreoConfigConstants.API_TOKEN);
                 } else if (SCIMProvisioningChoreoConnectorConstants.SCIM_ENABLE_PASSWORD_PROVISIONING
                                 .equals(property.getName())) {
                     populateSCIMProvider(property,
                                 SCIMProvisioningChoreoConnectorConstants.SCIM_ENABLE_PASSWORD_PROVISIONING);
-                } else if (SCIMProvisioningChoreoConnectorConstants.SCIM_DEFAULT_PASSWORD.equals(property.getName())) {
-                    populateSCIMProvider(property, SCIMProvisioningChoreoConnectorConstants.SCIM_DEFAULT_PASSWORD);
                 }
                 if (IdentityProvisioningConstants.JIT_PROVISIONING_ENABLED.equals(property
                         .getName()) && "1".equals(property.getValue())) {
@@ -98,11 +106,10 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
                     deleteUser(provisioningEntity);
                 } else if (provisioningEntity.getOperation() == ProvisioningOperation.POST) {
                     createUser(provisioningEntity);
-                } else if (provisioningEntity.getOperation() == ProvisioningOperation.PUT) {
-                    updateUser(provisioningEntity, ProvisioningOperation.PATCH);
-                } else if (provisioningEntity.getOperation() == ProvisioningOperation.PATCH) {
-                    updateUser(provisioningEntity, ProvisioningOperation.PATCH);
-                } else {
+                } else if (provisioningEntity.getOperation() == ProvisioningOperation.PUT ||
+                        provisioningEntity.getOperation() == ProvisioningOperation.PATCH) {
+                    updateUser(provisioningEntity);
+                }  else {
                     log.warn("Unsupported provisioning operation.");
                 }
             } else {
@@ -127,28 +134,27 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             if (CollectionUtils.isNotEmpty(userNames)) {
                 userName = userNames.get(0);
             }
-            User user;
-            user = new User();
+            User user = new User();
             user.setSchemaList(Collections.singletonList(SCIMConstants.CORE_SCHEMA_URI));
             user.setUserName(userName);
 
             try {
 
-                String contentType = this.scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE);
+                String contentType = this.scimProvider.getProperty(SCIMChoreoConfigConstants.CONTENT_TYPE);
                 if (contentType == null) {
-                    contentType = SCIMChoreoConfigConstants.ELEMENT_NAME_JSON_TYPE;
+                    contentType = SCIMChoreoConfigConstants.JSON_TYPE;
                 }
                 assert userName != null;
                 String slashRemovedUserName = userName.replace('/', ',');
 
-                String endPointUrl = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_ENDPOINT) + "/" + slashRemovedUserName;
-                String tokenValue = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_TOKEN);
-                String authorizationHeaderValue = SCIMChoreoConfigConstants.ELEMENT_NAME_TOKEN_TYPE + tokenValue;
+                String endPointUrl = scimProvider.getProperty(SCIMChoreoConfigConstants.API_ENDPOINT) + "/" + slashRemovedUserName;
+                String tokenValue = scimProvider.getProperty(SCIMChoreoConfigConstants.API_TOKEN);
+                String authorizationHeaderValue = SCIMChoreoConfigConstants.TOKEN_TYPE + tokenValue;
 
                 HttpDelete delete = new HttpDelete(endPointUrl);
-                delete.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT, SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT_TYPE);
-                delete.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE, contentType);
-                delete.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_AUTHORIZATION, authorizationHeaderValue);
+                delete.setHeader(SCIMChoreoConfigConstants.ACCEPT, SCIMChoreoConfigConstants.ACCEPT_TYPE);
+                delete.setHeader(SCIMChoreoConfigConstants.CONTENT_TYPE, contentType);
+                delete.setHeader(SCIMChoreoConfigConstants.AUTHORIZATION, authorizationHeaderValue);
 
                 try (CloseableHttpClient httpClient = HttpClients.createDefault();
                      CloseableHttpResponse response = httpClient.execute(delete)) { }
@@ -163,13 +169,12 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
     }
 
     /**
-     * Get upadated user details and send HTTP request.
+     * Get updated user details and send HTTP request.
      *
      * @param userEntity - user details
-     * @param provisioningOperation - Operation type
      * @throws IdentityProvisioningException - throws exception if there
      */
-    private void updateUser(ProvisioningEntity userEntity, ProvisioningOperation provisioningOperation) throws
+    private void updateUser(ProvisioningEntity userEntity) throws
             IdentityProvisioningException {
 
         try {
@@ -180,11 +185,10 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             if (CollectionUtils.isNotEmpty(userNames)) {
                 userName = userNames.get(0);
             }
-            User user;
             // Get single-valued claims.
             Map<String, String> singleValued = getSingleValuedClaims(userEntity.getAttributes());
             // If user created through management console, claim values are not present.
-            user = (User) AttributeMapper.constructSCIMObjectFromAttributes(singleValued,
+            User user = (User) AttributeMapper.constructSCIMObjectFromAttributes(singleValued,
                     SCIMConstants.USER_INT);
             user.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
             user.setUserName(userName);
@@ -193,18 +197,18 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             // Adding third party client.
             try {
 
-                String contentType = this.scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE);
+                String contentType = this.scimProvider.getProperty(SCIMChoreoConfigConstants.CONTENT_TYPE);
                 if (contentType == null) {
-                    contentType = SCIMChoreoConfigConstants.ELEMENT_NAME_JSON_TYPE;
+                    contentType = SCIMChoreoConfigConstants.JSON_TYPE;
                 }
-                String endPointUrl = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_ENDPOINT) + "/";
-                String tokenValue = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_TOKEN);
-                String authorizationHeader = SCIMChoreoConfigConstants.ELEMENT_NAME_TOKEN_TYPE + tokenValue;
+                String endPointUrl = scimProvider.getProperty(SCIMChoreoConfigConstants.API_ENDPOINT) + "/";
+                String tokenValue = scimProvider.getProperty(SCIMChoreoConfigConstants.API_TOKEN);
+                String authorizationHeader = SCIMChoreoConfigConstants.TOKEN_TYPE + tokenValue;
 
                 HttpPut put = new HttpPut(endPointUrl);
-                put.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT, SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT_TYPE);
-                put.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE, contentType);
-                put.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_AUTHORIZATION, authorizationHeader);
+                put.setHeader(SCIMChoreoConfigConstants.ACCEPT, SCIMChoreoConfigConstants.ACCEPT_TYPE);
+                put.setHeader(SCIMChoreoConfigConstants.CONTENT_TYPE, contentType);
+                put.setHeader(SCIMChoreoConfigConstants.AUTHORIZATION, authorizationHeader);
 
                 // Fetching the SCIM object.
                 SCIMClient newScimClient = new SCIMClient();
@@ -242,12 +246,11 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             if (CollectionUtils.isNotEmpty(userNames)) {
                 userName = userNames.get(0);
             }
-            User user;
             // Get single-valued claims.
             Map<String, String> singleValued = getSingleValuedClaims(userEntity.getAttributes());
 
             // If user created through management console, claim values are not present.
-            user = (User) AttributeMapper.constructSCIMObjectFromAttributes(singleValued,
+            User user = (User) AttributeMapper.constructSCIMObjectFromAttributes(singleValued,
                     SCIMConstants.USER_INT);
 
             user.setSchemaList(Arrays.asList(SCIMConstants.CORE_SCHEMA_URI));
@@ -257,19 +260,19 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
             // Adding third party client.
             try {
 
-                String contentType = this.scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE);
+                String contentType = this.scimProvider.getProperty(SCIMChoreoConfigConstants.CONTENT_TYPE);
                 if (contentType == null) {
-                    contentType = SCIMChoreoConfigConstants.ELEMENT_NAME_JSON_TYPE;
+                    contentType = SCIMChoreoConfigConstants.JSON_TYPE;
                 }
 
-                String endPointUrl = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_ENDPOINT) + "/";
-                String tokenValue = scimProvider.getProperty(SCIMChoreoConfigConstants.ELEMENT_NAME_API_TOKEN);
-                String authorizationHeader = SCIMChoreoConfigConstants.ELEMENT_NAME_TOKEN_TYPE + tokenValue;
+                String endPointUrl = scimProvider.getProperty(SCIMChoreoConfigConstants.API_ENDPOINT) + "/";
+                String tokenValue = scimProvider.getProperty(SCIMChoreoConfigConstants.API_TOKEN);
+                String authorizationHeader = SCIMChoreoConfigConstants.TOKEN_TYPE + tokenValue;
 
                 HttpPost post = new HttpPost(endPointUrl);
-                post.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT, SCIMChoreoConfigConstants.ELEMENT_NAME_ACCEPT_TYPE);
-                post.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_CONTENT_TYPE, contentType);
-                post.setHeader(SCIMChoreoConfigConstants.ELEMENT_NAME_AUTHORIZATION, authorizationHeader);
+                post.setHeader(SCIMChoreoConfigConstants.ACCEPT, SCIMChoreoConfigConstants.ACCEPT_TYPE);
+                post.setHeader(SCIMChoreoConfigConstants.CONTENT_TYPE, contentType);
+                post.setHeader(SCIMChoreoConfigConstants.AUTHORIZATION, authorizationHeader);
 
                 // Fetching the SCIM object.
                 SCIMClient newScimClient = new SCIMClient();
@@ -306,12 +309,6 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
 
         if (CollectionUtils.isNotEmpty(claimValues) && StringUtils.isNotBlank(claimValues.get(0))) {
             password = claimValues.get(0);
-        } else if (StringUtils.isNotBlank(scimProvider.getProperty(SCIMProvisioningChoreoConnectorConstants
-                .SCIM_DEFAULT_PASSWORD))) {
-            if (log.isDebugEnabled()) {
-                log.debug("Could not get the password for the user. Setting default password as the user password");
-            }
-            password = scimProvider.getProperty(SCIMProvisioningChoreoConnectorConstants.SCIM_DEFAULT_PASSWORD);
         } else {
             log.warn("Could not get the password or a default password for the user. " +
                     "User will be provisioned with an empty password");
@@ -325,9 +322,6 @@ public class SCIMProvisioningChoreoConnector extends SCIMProvisioningConnector {
         if (Boolean.parseBoolean(scimProvider.getProperty(SCIMProvisioningChoreoConnectorConstants
                 .SCIM_ENABLE_PASSWORD_PROVISIONING))) {
             user.setPassword(getPassword(userEntity.getAttributes()));
-        } else if (StringUtils.isNotBlank(scimProvider.getProperty(SCIMProvisioningChoreoConnectorConstants
-                .SCIM_DEFAULT_PASSWORD))) {
-            user.setPassword(scimProvider.getProperty(SCIMProvisioningChoreoConnectorConstants.SCIM_DEFAULT_PASSWORD));
         }
     }
 
