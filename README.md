@@ -16,4 +16,4 @@ You will see `scim-choreo` connector is listed under the outbound connectors.
 # Outbound Provisioning with `choreo-API`
 To configure an identity provider for outbound provisioning with choreo-API, first you need to create a API in [Choreo](https://wso2.com/choreo/) platform. Then get the API endpoint and a token and configure the `scim-choreo` connector with `API End-point` & `API Key`.
 
-Reffer this [example](https://docs.google.com/document/d/11FSXV6oD1TJVI8GdPXcg68wZDCHrBWOtNUI4aXKCqs0/edit?usp=sharing) to create an API for outbound provisioning with `scim-choreo` connector. 
+Reffer this [example](docs/creating_a_choreo_API_for_store_user_details_in_Gsheet.md) to create an API for outbound provisioning with `scim-choreo` connector. 

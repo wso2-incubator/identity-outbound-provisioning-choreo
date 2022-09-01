@@ -6,7 +6,7 @@ To create an identity provider and configure it to outbound provisioning in the 
 
 ## 1. Adding scim-choreo outbound provisioning connector to the WSO2 identity server
 
-To plug the scim-choreo outbound provisioning connector into the WSO2 identity server, use this URL[1] to clone the repository into your PC. Then build the repository(using the `mvn clean install` command) and get the `JAR` file from the `target` folder. Then plug the `JAR` file into the WSO2 identity server through the following path,
+To plug the scim-choreo outbound provisioning connector into the WSO2 identity server, clone this repository into your PC. Then build the repository(using the `mvn clean install` command) and get the `JAR` file from the `target` folder. Then plug the `JAR` file into the WSO2 identity server through the following path,
 `<IS_HOME> → repository → components → dropins`.
 Then restart the WSO2 IS and you will see the new scim-outbound connector has been added under the outbound connectors inside the identity providers in WSO2 IS. `(Main → Identity → Identity providers → Add)`
 
@@ -94,6 +94,5 @@ curl -X POST "https://localhost:9443/t/carbon.super/api/server/v1/identity-provi
 If the configurations are accurate, you will get status: 201 created response from the server.
 
 ## References
-[1]. [scim-choreo connector repository]()
 
-[2]. [Identity provider management API definition](https://is.docs.wso2.com/en/latest/develop/idp-rest-api/#identity-provider-management-api-definition-v1)
+[1]. [Identity provider management API definition](https://is.docs.wso2.com/en/latest/develop/idp-rest-api/#identity-provider-management-api-definition-v1)
